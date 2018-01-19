@@ -4,7 +4,8 @@ parameters:
     locale: 'en'
     # This parameter defines the codes of the locales (languages) enabled in the application
     app_locales: en|fr|de|es|cs|nl|ru|uk|ro|pt_BR|pl|it|ja|id|ca|sl|hr|zh_CN
-    app.notifications.email_sender: anonymous@example.com
+    app.notifications.email_sender: 'jbidjeke@yahoo.com'
+    images_directory: '%kernel.project_dir%/public/uploads/img'
 
 services:
     # default configuration for services in *this* file
@@ -34,3 +35,16 @@ services:
     # 'arguments' key and define the arguments just below the service class
     App\EventSubscriber\CommentNotificationSubscriber:
         $sender: '%app.notifications.email_sender%'
+    
+    App\EventSubscriber\ImageUploadListener:
+        tags:
+            - { name: doctrine.event_listener, event: postPersist }
+            - { name: doctrine.event_listener, event: prePersist }
+            - { name: doctrine.event_listener, event: postRemove }
+            - { name: doctrine.event_listener, event: preRemove }
+        
+    App\Service\FileUploader:
+        arguments:
+            $targetDir: '%images_directory%'
+    
+    

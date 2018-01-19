@@ -84,7 +84,7 @@ class BlogController extends AbstractController
         $geolocate->setLng(0); 
         
         $advert = new Advert();
-        $advert->setPrice(0);
+        /*$advert->setPrice(0);*/
         $advert->setGeolocate($geolocate);
         
         

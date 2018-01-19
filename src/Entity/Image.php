@@ -7,8 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * @ORM\Entity(repositoryClass="App\Entity\ImageRepository")
- * @ORM\HasLifecycleCallbacks()
+ * @ORM\Entity(repositoryClass="App\Repository\ImageRepository")
  */
 class Image
 {
@@ -39,14 +38,14 @@ class Image
 
     public function getUploadDir()
     {
-      // On retourne le chemin relatif vers l'image pour un navigateur (relatif au rÃ©pertoire /web donc)
+      // On retourne le chemin relatif vers l'image pour un navigateur (relatif au répertoire /web donc)
       return 'uploads/img';
     }
 
     protected function getUploadRootDir()
     {
       // On retourne le chemin relatif vers l'image pour notre code PHP
-      return __DIR__.'/../../../../web/'.$this->getUploadDir();
+      return __DIR__.'../../public/'.$this->getUploadDir();
     }
 
     public function makeDirIfNotExist($dir)
@@ -61,26 +60,23 @@ class Image
       return $this->file;
     }
 
-    // On modifie le setter de File, pour prendre en compte l'upload d'un fichier lorsqu'il en existe dÃ©jÃ  un autre
+    // On modifie le setter de File, pour prendre en compte l'upload d'un fichier lorsqu'il en existe déjà  un autre
     public function setFile(UploadedFile $file)
     {
       $this->file = $file;
 
-      // On vÃ©rifie si on avait dÃ©jÃ  un fichier pour cette entitÃ©
+      // On vérifie si on avait déjà  un fichier pour cette entité
       if (null !== $this->url) {
         // On sauvegarde l'extension du fichier pour le supprimer plus tard
         $this->tempFilename = $this->url;
 
-        // On rÃ©initialise les valeurs des attributs url et alt
+        // On réinitialise les valeurs des attributs url et alt
         $this->url = null;
         $this->alt = null;
       }
     }
 
-    /**
-   * @ORM\PrePersist()
-   * @ORM\PreUpdate()
-   */
+   
     public function preUpload()
     {
 
@@ -89,23 +85,19 @@ class Image
         return;
       }
 
-      // on crÃ©e le dossier image s'il n'existe pas
+      // on crée le dossier image s'il n'existe pas
       $this->makeDirIfNotExist($this->getUploadRootDir());
 
-      // Le nom du fichier est son id, on doit juste stocker Ã©galement son extension
-      // Pour faire propre, on devrait renommer cet attribut en Â« extension Â», plutÃ´t que Â« url Â»
+      // Le nom du fichier est son id, on doit juste stocker également son extension
       $this->url = $this->file->guessExtension();
 
-      // Et on gÃ©nÃ¨re l'attribut alt de la balise <img>, Ã  la valeur du nom du fichier sur le PC de l'internaute
+      // Et on genère l'attribut alt de la balise <img>, à la valeur du nom du fichier sur le PC de l'internaute
       $this->alt = $this->file->getClientOriginalName();
 
     }
 
 
-    /**
-   * @ORM\PostPersist()
-   * @ORM\PostUpdate()
-   */
+    
     public function upload()
     {
       // Si jamais il n'y a pas de fichier (champ facultatif)
@@ -121,40 +113,55 @@ class Image
         }
       }
 
-      // On dÃ©place le fichier envoyÃ© dans le rÃ©pertoire de notre choix
+      // On déplace le fichier envoyé dans le répertoire de notre choix
       $this->file->move(
-        $this->getUploadRootDir(), // Le rÃ©pertoire de destination
-        $this->id.'.'.$this->url   // Le nom du fichier Ã  crÃ©er, ici Â« id.extension Â»
+        $this->getUploadRootDir(), // Le répertoire de destination
+        $this->id.'.'.$this->url   // Le nom du fichier à  créer
       );
     }
 
 
-    /**
-     * @ORM\PreRemove()
-     */
+  
     public function preRemoveUpload()
     {
-      // On sauvegarde temporairement le nom du fichier, car il dÃ©pend de l'id
+      // On sauvegarde temporairement le nom du fichier, car il dépend de l'id
       $this->tempFilename = $this->getUploadRootDir().'/'.$this->id.'.'.$this->url;
     }
 
-    /**
-     * @ORM\PostRemove()
-     */
     public function removeUpload()
     {
-      // En PostRemove, on n'a pas accÃ¨s Ã  l'id, on utilise notre nom sauvegardÃ©
+      // En PostRemove, on n'a pas accusé  l'id, on utilise notre nom sauvegardé
       if (file_exists($this->tempFilename)) {
         // On supprime le fichier
         unlink($this->tempFilename);
       }
     }
+    
+    /**
+     * Get TempFilename
+     */
+    public function getTempFilename(): string
+    {
+        // On sauvegarde temporairement le nom du fichier, car il dépend de l'id
+        return  $this->getUploadRootDir().'/'.$this->id.'.'.$this->url;
+    }
+    
+    /**
+     * Get TempFilename
+     * @param string $tempFile
+     */
+    public function setTempFilename(string $tempFile): void
+    {
+        // On sauvegarde temporairement le nom du fichier, car il dépend de l'id
+        $this->tempFilename = $tempFile;
+    }
 
 
     public function getWebPath()
     {
-      return $this->getUploadDir().'/'.$this->getId().'.'.$this->getUrl();
+      return $this->getUploadDir().'/'.$this->id.'.'.$this->url;
     }
+    
 
 
     /**

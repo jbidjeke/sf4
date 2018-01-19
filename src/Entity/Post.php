@@ -49,6 +49,14 @@ class Post
      * @ORM\Column(type="integer")
      */
     private $id;
+    
+    /**
+     * @var Advert
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\Advert", cascade={"persist", "remove"})
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $advert;
 
     /**
      * @var string
@@ -99,14 +107,6 @@ class Post
      */
     private $author;
     
-    
-    /**
-     * @var Advert
-     *
-     * @ORM\OneToOne(targetEntity="App\Entity\Advert", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private $advert;
 
     /**
      * @var Comment[]|ArrayCollection
@@ -138,7 +138,7 @@ class Post
         $this->tags = new ArrayCollection();
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
